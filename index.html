@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema Inteligente de Detección de Fugas de Agua</title>
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js para gráficas simples -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #020617;
+      --card: #0f172a;
+      --card-soft: #020617;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.18);
+      --accent-strong: #16a34a;
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.15);
+      --warning: #f59e0b;
+      --warning-soft: rgba(245, 158, 11, 0.18);
+      --muted: #9ca3af;
+      --text: #e5e7eb;
+      --border: #1f2937;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.8);
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #0b1120 0, #020617 55%, #000000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-shell {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .brand-card {
+      flex: 2 1 260px;
+      background: radial-gradient(circle at top left, #1e293b 0, #020617 45%, #020617 100%);
+      border-radius: var(--radius-xl);
+      padding: 18px 20px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .brand-card h1 {
+      font-size: clamp(21px, 3vw, 26px);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #f9fafb;
+      margin-bottom: 4px;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 430px;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(55, 65, 81, 0.7);
+      color: var(--muted);
+    }
+
+    .hero-pill span.icon {
+      font-size: 12px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-primary {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      background: linear-gradient(to right, var(--accent), var(--accent-strong));
+      color: #022c22;
+      box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.02);
+      box-shadow: 0 12px 32px rgba(34, 197, 94, 0.55);
+    }
+
+    .btn-ghost {
+      border-radius: var(--radius-pill);
+      padding: 7px 13px;
+      font-size: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: background 0.12s ease, border 0.12s ease;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(148, 163, 184, 0.7);
+    }
+
+    .brand-glow {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.3), transparent 65%);
+      top: -60px;
+      right: -50px;
+      pointer-events: none;
+    }
+
+    .brand-grid {
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border-radius: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      top: -32px;
+      right: -15px;
+      opacity: 0.45;
+      backdrop-filter: blur(10px);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.5));
+    }
+
+    .brand-grid::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 22px;
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+    }
+
+    .brand-grid-line {
+      position: absolute;
+      inset: 18px;
+      background-image: linear-gradient(to right, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(148, 163, 184, 0.22) 1px, transparent 1px);
+      background-size: 22px 22px;
+      border-radius: 22px;
+      mix-blend-mode: screen;
+    }
+
+    .brand-metric-chip {
+      position: absolute;
+      bottom: 16px;
+      right: 22px;
+      padding: 7px 11px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(34, 197, 94, 0.55);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #bbf7d0;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-metric-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4);
+    }
+
+    /* Panel lateral de estado */
+    .status-card {
+      flex: 1.1 1 230px;
+      background: linear-gradient(135deg, #020617, #111827);
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .status-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .status-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(22, 163, 74, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #bbf7d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .status-metric {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 14px;
+      padding: 8px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .status-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .status-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e5e7eb;
+      margin-bottom: 2px;
+    }
+
+    .status-sub {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .status-footer {
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .status-indicator-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .status-mini-badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      color: var(--muted);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr);
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, #020617 0, #020617 40%, #020617 100%);
+      border-radius: var(--radius-xl);
+      padding: 14px 14px 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      box-shadow: 0 16px 35px rgba(15, 23, 42, 0.7);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .chip-success {
+      border-color: rgba(34, 197, 94, 0.55);
+      background: var(--accent-soft);
+      color: #bbf7d0;
+    }
+
+    .chip-danger {
+      border-color: rgba(239, 68, 68, 0.5);
+      background: var(--danger-soft);
+      color: #fecaca;
+    }
+
+    .chip-warning {
+      border-color: rgba(245, 158, 11, 0.5);
+      background: var(--warning-soft);
+      color: #fed7aa;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 960px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 16px;
+      padding: 8px 9px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .metric-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .metric-value {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .metric-trend {
+      font-size: 10px;
+      color: #22c55e;
+    }
+
+    .metric-trend.neg {
+      color: #f97316;
+    }
+
+    .metric-trend.critical {
+      color: #f97316;
+    }
+
+    .metric-icon {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-right: 4px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 960px) {
+      .two-col {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .table-wrapper {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 16px;
+      padding: 7px 8px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      max-height: 240px;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    thead tr {
+      position: sticky;
+      top: 0;
+      background: rgba(15, 23, 42, 0.98);
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 5px 6px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    tbody tr:hover {
+      background: rgba(31, 41, 55, 0.9);
+    }
+
+    .pill-status {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-status.ok {
+      background: rgba(34, 197, 94, 0.12);
+      color: #bbf7d0;
+    }
+
+    .pill-status.warn {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fed7aa;
+    }
+
+    .pill-status.err {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fecaca;
+    }
+
+    .pill-status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .list-item {
+      padding: 7px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .list-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .list-title {
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .list-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .tag {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--muted);
+    }
+
+    .tag-critical {
+      border-color: rgba(239, 68, 68, 0.7);
+      color: #fecaca;
+      background: var(--danger-soft);
+    }
+
+    .tag-info {
+      border-color: rgba(59, 130, 246, 0.7);
+      color: #bfdbfe;
+      background: rgba(37, 99, 235, 0.2);
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 180px;
+      margin-top: 4px;
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .ai-card {
+      margin-top: 10px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 23, 42, 0.95));
+      border-radius: 18px;
+      padding: 9px 10px;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ai-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-title {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .ai-predictions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ai-item {
+      padding: 7px 8px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ai-sensor {
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .ai-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .ai-score {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f97316;
+    }
+
+    .ai-score.critical {
+      color: #ef4444;
+    }
+
+    .ai-chip {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(253, 224, 71, 0.7);
+      background: rgba(250, 204, 21, 0.18);
+      color: #fef9c3;
+    }
+
+    footer {
+      margin-top: 8px;
+      font-size: 10px;
+      color: #4b5563;
+      text-align: center;
+    }
+
+    .badge-small {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+    }
+
+    .badge-small span {
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ENCABEZADO -->
+    <header>
+      <section class="brand-card">
+        <div class="brand-glow"></div>
+        <div class="brand-grid">
+          <div class="brand-grid-line"></div>
+          <div class="brand-metric-chip">
+            <div class="brand-metric-dot"></div>
+            92% fugas detectadas antes del daño
+          </div>
+        </div>
+
+        <div class="brand-badge">
+          <span class="brand-dot"></span>
+          Sistema activo • Sensores + IA en tiempo real
+        </div>
+
+        <h1>Sistema Inteligente de Detección de Fugas de Agua</h1>
+        <p class="brand-subtitle">
+          Plataforma que integra sensores en tuberías, registros operativos y un módulo de IA
+          para detectar fugas, generar alertas y predecir riesgos antes de que ocurra el problema.
+        </p>
+
+        <div class="hero-pills">
+          <div class="hero-pill">
+            <span class="icon">💧</span> Monitoreo de presión y consumo
+          </div>
+          <div class="hero-pill">
+            <span class="icon">⚙️</span> Datos operativos y registros de errores
+          </div>
+          <div class="hero-pill">
+            <span class="icon">🤖</span> IA con predicciones de posibles fugas
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <button class="btn-primary">
+            Ver panel de sensores
+            <span>▸</span>
+          </button>
+          <button class="btn-ghost">
+            <span>📊</span>
+            Exportar datos (CSV)
+          </button>
+        </div>
+      </section>
+
+      <!-- PANEL RÁPIDO DE ESTADO -->
+      <aside class="status-card">
+        <div class="status-header">
+          <div>
+            <div class="status-title">Estado general del sistema</div>
+            <div class="card-subtitle">Resumen rápido de la red de tuberías</div>
+          </div>
+          <div class="status-tag">
+            <span>🟢</span> Operando
+          </div>
+        </div>
+
+        <div class="status-metrics">
+          <div class="status-metric">
+            <div class="status-label">Sensores activos</div>
+            <div class="status-value" id="summarySensors">–</div>
+            <div class="status-sub">En tuberías principales</div>
+          </div>
+          <div class="status-metric">
+            <div class="status-label">Alertas hoy</div>
+            <div class="status-value" id="summaryAlerts">–</div>
+            <div class="status-sub">En las últimas 24 h</div>
+          </div>
+          <div class="status-metric">
+            <div class="status-label">Fugas activas</div>
+            <div class="status-value" id="summaryLeaks">–</div>
+            <div class="status-sub">Revisión inmediata</div>
+          </div>
+          <div class="status-metric">
+            <div class="status-label">Predicciones IA</div>
+            <div class="status-value" id="summaryPredictions">–</div>
+            <div class="status-sub">Riesgo medio / alto</div>
+          </div>
+        </div>
+
+        <div class="status-footer">
+          <div class="status-indicator">
+            <span class="status-indicator-dot"></span>
+            <span>Monitoreo continuo</span>
+          </div>
+          <div class="status-mini-badge">
+            Datos en vivo • Última sincronización: <span id="lastSync">–</span>
+          </div>
+        </div>
+      </aside>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+      <!-- COLUMNA IZQUIERDA: DATOS & GRÁFICA -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Panel de datos de operación</div>
+            <div class="card-subtitle">
+              Datos operativos, contenido de sensores y consumo diario / mensual.
+            </div>
+          </div>
+          <div class="badge-small">
+            <span>💾</span>
+            Datos operativos, errores, tiempo de uso, rendimiento
+          </div>
+        </div>
+
+        <!-- MÉTRICAS PRINCIPALES -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Consumo hoy (m³)</div>
+            <div class="metric-value" id="consumoHoy">–</div>
+            <div class="metric-trend">
+              <span class="metric-icon">📈</span>
+              vs. promedio semanal
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Consumo este mes (m³)</div>
+            <div class="metric-value" id="consumoMes">–</div>
+            <div class="metric-trend neg">
+              <span class="metric-icon">📉</span>
+              4% menos que el mes pasado
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Tiempo de uso del sistema</div>
+            <div class="metric-value">99.3%</div>
+            <div class="metric-trend">
+              <span class="metric-icon">⚙️</span>
+              Disponibilidad (uptime)
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Errores registrados</div>
+            <div class="metric-value" id="erroresTotal">–</div>
+            <div class="metric-trend critical">
+              <span class="metric-icon">🧩</span>
+              Últimas 24 h
+            </div>
+          </div>
+        </div>
+
+        <!-- GRÁFICA DE CONSUMO -->
+        <div class="card-subtitle" style="margin-top:8px;">
+          Gráfica de consumo diario (últimos 7 días)
+        </div>
+        <div class="chart-container">
+          <canvas id="consumoChart"></canvas>
+        </div>
+
+        <div class="two-col" style="margin-top:10px;">
+          <!-- TABLA: PRESIÓN Y UBICACIÓN (DATOS DE CONTENIDO) -->
+          <div>
+            <div class="card-subtitle" style="margin-bottom:4px;">
+              Datos de contenido: presión en tuberías y ubicación de sensores
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sensor</th>
+                    <th>Ubicación</th>
+                    <th>Presión</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaSensores">
+                  <!-- Rellenado por JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TABLA: REGISTROS DE ERRORES (DATOS OPERATIVOS) -->
+          <div>
+            <div class="card-subtitle" style="margin-bottom:4px;">
+              Registros de errores del sistema
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha / Hora</th>
+                    <th>Sensor</th>
+                    <th>Tipo</th>
+                    <th>Detalles</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaErrores">
+                  <!-- Rellenado por JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMNA DERECHA: HISTORIAL, ALERTAS, IA -->
+      <section class="card">
+        <!-- HISTORIAL DE FUGAS Y ALERTAS -->
+        <div class="card-header">
+          <div>
+            <div class="card-title">Alertas, historial de fugas y rendimiento</div>
+            <div class="card-subtitle">
+              Historial de fugas detectadas, alertas generadas y estadísticas de rendimiento.
+            </div>
+          </div>
+          <div class="chip chip-warning">
+            🔔 Alertas en tiempo real
+          </div>
+        </div>
+
+        <div class="two-col">
+          <!-- HISTORIAL DE FUGAS -->
+          <div>
+            <div class="card-subtitle" style="margin-bottom:4px;">
+              Historial de fugas detectadas
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Sensor</th>
+                    <th>Nivel</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaFugas">
+                  <!-- Rellenado por JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ALERTAS GENERADAS -->
+          <div>
+            <div class="card-subtitle" style="margin-bottom:4px;">
+              Alertas generadas hoy
+            </div>
+            <div class="list" id="listaAlertas">
+              <!-- Rellenado por JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN IA -->
+        <div class="ai-card">
+          <div class="ai-header">
+            <div class="ai-title">
+              <span>🤖</span> Módulo de IA: predicciones de posibles fugas
+            </div>
+            <div class="ai-chip">
+              Predicción basada en presión + historial + consumo
+            </div>
+          </div>
+          <p class="ai-desc">
+            El modelo de IA analiza datos operativos (tiempo de uso, errores, rendimiento),
+            datos de contenido (presión, ubicación de sensores, historial de fugas, consumo diario / mes)
+            y genera una probabilidad de que ocurra una nueva fuga en los próximos días.
+          </p>
+
+          <div class="ai-predictions" id="listaPredicciones">
+            <!-- Rellenado por JS -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Proyecto: Sistema de detección de fugas de agua • Sensores + IA + interfaz web • Demo estática con datos simulados.
+    </footer>
+  </div>
+
+  <script>
+    // Datos simulados para mostrar cómo funcionaría el sistema
+
+    const sensores = [
+      { id: "S-001", ubicacion: "Edificio A - Tubería principal", presion: "74 psi", estado: "OK" },
+      { id: "S-002", ubicacion: "Edificio A - Piso 2", presion: "69 psi", estado: "OK" },
+      { id: "S-003", ubicacion: "Edificio B - Subsuelo", presion: "48 psi", estado: "WARN" },
+      { id: "S-004", ubicacion: "Estacionamiento - Línea secundaria", presion: "31 psi", estado: "CRIT" },
+      { id: "S-005", ubicacion: "Edificio C - Azotea", presion: "79 psi", estado: "OK" }
+    ];
+
+    const errores = [
+      {
+        fecha: "28/11/25 10:14",
+        sensor: "S-004",
+        tipo: "Timeout de lectura",
+        detalles: "Retraso en respuesta del sensor (3 s)"
+      },
+      {
+        fecha: "28/11/25 09:51",
+        sensor: "S-003",
+        tipo: "Valores fuera de rango",
+        detalles: "Variación brusca de presión"
+      },
+      {
+        fecha: "27/11/25 22:08",
+        sensor: "S-002",
+        tipo: "Pérdida de paquete",
+        detalles: "Reintento automático exitoso"
+      }
+    ];
+
+    const fugas = [
+      {
+        fecha: "28/11/25",
+        sensor: "S-004",
+        nivel: "Alta",
+        estado: "En reparación"
+      },
+      {
+        fecha: "26/11/25",
+        sensor: "S-003",
+        nivel: "Media",
+        estado: "Resuelta"
+      },
+      {
+        fecha: "21/11/25",
+        sensor: "S-001",
+        nivel: "Baja",
+        estado: "Resuelta"
+      }
+    ];
+
+    const alertas = [
+      {
+        titulo: "Caída de presión anómala",
+        detalle: "Sensor S-004 detectó caída de presión del 20% en 5 min.",
+        nivel: "Crítica",
+        hora: "18:42"
+      },
+      {
+        titulo: "Consumo elevado en horario nocturno",
+        detalle: "Consumo 35% mayor al esperado entre 02:00 y 03:00.",
+        nivel: "Media",
+        hora: "03:15"
+      },
+      {
+        titulo: "Variación de presión intermitente",
+        detalle: "Sensores S-002 y S-003 con variaciones repetidas.",
+        nivel: "Baja",
+        hora: "01:27"
+      }
+    ];
+
+    const predicciones = [
+      {
+        sensor: "S-004 • Línea secundaria estacionamiento",
+        prob: 0.82,
+        plazo: "Próximas 24 h",
+        motivo: "Patrones de presión inestable + historial de fuga reciente"
+      },
+      {
+        sensor: "S-003 • Subsuelo edificio B",
+        prob: 0.64,
+        plazo: "Próximos 3 días",
+        motivo: "Tendencia de consumo + errores de valores fuera de rango"
+      },
+      {
+        sensor: "Zona combinada S-001 + S-002",
+        prob: 0.41,
+        plazo: "Próximos 7 días",
+        motivo: "Incremento leve de consumo nocturno y pequeñas variaciones"
+      }
+    ];
+
+    const consumoSemanal = {
+      dias: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+      valores: [13.2, 12.7, 14.1, 13.8, 15.5, 11.9, 10.8]
+    };
+
+    const consumoHoy = 10.8;
+    const consumoMes = 320.4;
+
+    // Rellenar resumen rápido
+    document.getElementById("summarySensors").textContent = sensores.length;
+    document.getElementById("summaryAlerts").textContent = alertas.length;
+    document.getElementById("summaryLeaks").textContent = fugas.filter(f => f.estado !== "Resuelta").length;
+    document.getElementById("summaryPredictions").textContent = predicciones.length;
+
+    // Última sincronización
+    function formatTime(date) {
+      const h = String(date.getHours()).padStart(2, "0");
+      const m = String(date.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    }
+    document.getElementById("lastSync").textContent = formatTime(new Date()) + " h";
+
+    // Métricas de consumo
+    document.getElementById("consumoHoy").textContent = consumoHoy.toFixed(1);
+    document.getElementById("consumoMes").textContent = consumoMes.toFixed(1);
+
+    // Errores totales (simplemente la longitud del arreglo)
+    document.getElementById("erroresTotal").textContent = errores.length;
+
+    // Tabla de sensores
+    const tablaSensores = document.getElementById("tablaSensores");
+    sensores.forEach(s => {
+      const tr = document.createElement("tr");
+
+      const estadoClass =
+        s.estado === "OK" ? "ok" :
+        s.estado === "WARN" ? "warn" :
+        "err";
+
+      tr.innerHTML = `
+        <td>${s.id}</td>
+        <td>${s.ubicacion}</td>
+        <td>${s.presion}</td>
+        <td>
+          <span class="pill-status ${estadoClass}">
+            <span class="pill-status-dot"></span>
+            ${s.estado === "OK" ? "Normal" : s.estado === "WARN" ? "Atención" : "Crítico"}
+          </span>
+        </td>
+      `;
+      tablaSensores.appendChild(tr);
+    });
+
+    // Tabla de errores
+    const tablaErrores = document.getElementById("tablaErrores");
+    errores.forEach(e => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${e.fecha}</td>
+        <td>${e.sensor}</td>
+        <td>${e.tipo}</td>
+        <td>${e.detalles}</td>
+      `;
+      tablaErrores.appendChild(tr);
+    });
+
+    // Tabla de fugas
+    const tablaFugas = document.getElementById("tablaFugas");
+    fugas.forEach(f => {
+      const tr = document.createElement("tr");
+      const nivelClass =
+        f.nivel === "Alta" ? "tag-critical" :
+        f.nivel === "Media" ? "chip-warning" : "chip";
+
+      const estadoText =
+        f.estado === "Resuelta" ? "Resuelta" : "Pendiente";
+
+      const estadoClass =
+        f.estado === "Resuelta" ? "pill-status ok" : "pill-status err";
+
+      tr.innerHTML = `
+        <td>${f.fecha}</td>
+        <td>${f.sensor}</td>
+        <td><span class="tag ${nivelClass}">${f.nivel}</span></td>
+        <td>
+          <span class="${estadoClass}">
+            <span class="pill-status-dot"></span>
+            ${estadoText}
+          </span>
+        </td>
+      `;
+      tablaFugas.appendChild(tr);
+    });
+
+    // Lista de alertas
+    const listaAlertas = document.getElementById("listaAlertas");
+    alertas.forEach(a => {
+      const item = document.createElement("div");
+      const nivelClass =
+        a.nivel === "Crítica" ? "tag-critical" :
+        a.nivel === "Media" ? "chip-warning" :
+        "chip";
+
+      item.className = "list-item";
+      item.innerHTML = `
+        <div class="list-main">
+          <div class="list-title">${a.titulo}</div>
+          <div class="list-meta">${a.detalle}</div>
+          <div class="list-meta">Generada a las ${a.hora} h</div>
+        </div>
+        <span class="tag ${nivelClass}">
+          ${a.nivel}
+        </span>
+      `;
+      listaAlertas.appendChild(item);
+    });
+
+    // Lista de predicciones IA
+    const listaPredicciones = document.getElementById("listaPredicciones");
+    predicciones.forEach(p => {
+      const item = document.createElement("div");
+      const scorePercent = Math.round(p.prob * 100);
+      const scoreClass = scorePercent >= 80 ? "ai-score critical" : "ai-score";
+
+      item.className = "ai-item";
+      item.innerHTML = `
+        <div class="ai-main">
+          <div class="ai-sensor">${p.sensor}</div>
+          <div class="ai-meta">
+            Probable fuga en ${p.plazo} • Motivo: ${p.motivo}
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:2px; align-items:flex-end;">
+          <div class="${scoreClass}">
+            ${scorePercent}%
+          </div>
+          <div class="tag-info">
+            Riesgo estimado
+          </div>
+        </div>
+      `;
+      listaPredicciones.appendChild(item);
+    });
+
+    // Gráfica de consumo diario
+    const ctx = document.getElementById("consumoChart").getContext("2d");
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: consumoSemanal.dias,
+        datasets: [
+          {
+            label: "Consumo (m³)",
+            data: consumoSemanal.valores,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 4,
+            borderColor: "#22c55e",
+            backgroundColor: "rgba(34, 197, 94, 0.18)",
+            fill: true
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: "#020617",
+            borderColor: "#22c55e",
+            borderWidth: 1,
+            padding: 8,
+            titleColor: "#e5e7eb",
+            bodyColor: "#9ca3af"
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#9ca3af",
+              font: { size: 10 }
+            },
+            grid: {
+              color: "rgba(55, 65, 81, 0.4)"
+            }
+          },
+          y: {
+            ticks: {
+              color: "#9ca3af",
+              font: { size: 10 }
+            },
+            grid: {
+              color: "rgba(55, 65, 81, 0.4)"
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
