@@ -1,769 +1,518 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <title>Fugas de Agua – App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta charset="utf-8" />
+<title>Fugas de Agua – App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-  <!-- Fuente -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Chart.js para la gráfica -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    :root {
-      --bg-app: #f9fafb;
-      --primary: #2563eb;
-      --primary-soft: #dbeafe;
-      --accent: #22c55e;
-      --danger: #ef4444;
-      --text: #0f172a;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-    }
+<style>
+/* VARIABLES */
+:root {
+  --bg: #f5f6f7;
+  --card: #ffffffcc;
+  --border: rgba(0,0,0,0.06);
+  --text: #0f172a;
+  --muted: #6b7280;
+  --primary: #2563eb;
+  --primary-soft: #e0eaff;
+  --accent: #22c55e;
+  --danger: #ef4444;
+  --yellow: #facc15;
+  --shadow: 0 8px 24px rgba(0,0,0,0.06);
+  --radius: 18px;
+}
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+/* RESET */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Inter", sans-serif; }
 
-    body {
-      background: #f2f2f7;
-      min-height: 100vh;
-    }
+html, body { height: 100%; background: var(--bg); }
 
-    /* APP A PANTALLA COMPLETA */
-    .app-shell {
-      min-height: 100vh;
-      background: var(--bg-app);
-      display: flex;
-      flex-direction: column;
-      padding-top: calc(env(safe-area-inset-top, 0px) + 6px);
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px));
-    }
+/* APP ROOT */
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  overflow-x: hidden;
+}
 
-    /* HEADER COMPACTO ESTILO iOS */
-    .app-header {
-      padding: 6px 16px 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.03);
-      backdrop-filter: blur(10px);
-    }
+/* HEADER */
+.app-header {
+  padding: 14px 20px 10px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 15;
+}
 
-    .app-header-left {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
+.app-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.app-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+}
 
-    .app-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.01em;
-    }
+/* STATUS LABEL */
+.status-pill {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #e6fef3;
+  color: #0d7c47;
+  font-size: 12px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
 
-    .app-subtitle {
-      font-size: 11px;
-      color: var(--muted);
-    }
+/* CONTENT */
+.app-content {
+  flex: 1;
+  padding: 18px 18px 90px;
+  scroll-behavior: smooth;
+}
 
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: #ecfdf5;
-      color: #047857;
-      font-size: 11px;
-      font-weight: 500;
-      border: 1px solid #bbf7d0;
-    }
+/* SECTION TITLE */
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
 
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #22c55e;
-    }
+/* GRID RESUMEN */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
 
-    /* CONTENIDO SCROLLABLE */
-    .app-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 6px 14px 10px;
-      scroll-behavior: smooth;
-    }
+.summary-card {
+  background: var(--card);
+  padding: 14px;
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: 0.2s;
+}
+.summary-card:hover {
+  transform: translateY(-2px);
+}
 
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
+.summary-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.summary-value {
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.summary-chip,
+.summary-chip-red {
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.summary-chip { background: #dcfce7; color: #166534; }
+.summary-chip-red { background: #fee2e2; color: #991b1b; }
 
-    /* CARDS RESUMEN COMPACTOS */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 10px;
-    }
+/* CHART */
+.chart-card {
+  background: var(--card);
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.chart-subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
 
-    .summary-card {
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 8px 9px;
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+.chart-container {
+  width: 100%;
+  height: 180px;
+}
 
-    .summary-label {
-      font-size: 11px;
-      color: var(--muted);
-    }
+/* LIST CARDS */
+.list-card {
+  background: var(--card);
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
 
-    .summary-value {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.02em;
-    }
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-    .summary-chip {
-      font-size: 10px;
-      color: #15803d;
-      background: #dcfce7;
-      padding: 2px 8px;
-      border-radius: 999px;
-      align-self: flex-start;
-    }
+.list-item {
+  background: white;
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.15s;
+}
+.list-item:hover { transform: scale(1.015); }
 
-    .summary-chip-red {
-      color: #b91c1c;
-      background: #fee2e2;
-    }
+.list-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+.list-meta {
+  font-size: 11px;
+  color: var(--muted);
+}
 
-    /* CHART CARD */
-    .chart-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 9px 10px;
-      border: 1px solid var(--border);
-      margin-bottom: 10px;
-    }
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-yellow { background: #fef9c3; color: #855d0e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
 
-    .chart-title {
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
+/* IA */
+.ai-risk { font-size: 16px; font-weight: 700; }
+.ai-risk-high { color: #b91c1c; }
+.ai-risk-mid { color: #ca8a04; }
+.ai-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-    .chart-subtitle {
-      font-size: 10px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
+/* TABS IOS */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(58px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 20;
+}
 
-    .chart-container {
-      width: 100%;
-      height: 150px;
-    }
+.tab-btn {
+  flex: 1;
+  text-align: center;
+  border: none;
+  background: none;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.tab-btn span.icon { font-size: 18px; }
 
-    .chart-container canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
+.tab-btn-active {
+  color: var(--primary);
+  font-weight: 600;
+}
 
-    /* LIST CARDS */
-    .list-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 9px 10px;
-      border: 1px solid var(--border);
-      margin-bottom: 9px;
-    }
+.tab-pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+}
 
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
+/* PANELS */
+.tab-panel { display: none; animation: fade 0.2s ease-out; }
+.tab-panel.active { display: block; }
 
-    .list-item {
-      border-radius: 11px;
-      padding: 7px 8px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
+@keyframes fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    .list-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .list-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .list-meta {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .badge {
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      background: #ffffff;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .badge-green {
-      border-color: #bbf7d0;
-      color: #166534;
-      background: #dcfce7;
-    }
-
-    .badge-yellow {
-      border-color: #facc15;
-      color: #92400e;
-      background: #fef9c3;
-    }
-
-    .badge-red {
-      border-color: #fecaca;
-      color: #991b1b;
-      background: #fee2e2;
-    }
-
-    /* SECCIÓN IA */
-    .ai-risk {
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .ai-risk-high { color: #b91c1c; }
-    .ai-risk-mid { color: #c05621; }
-
-    .ai-pill {
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px dashed #93c5fd;
-      background: #eff6ff;
-      color: #1d4ed8;
-      margin-top: 4px;
-    }
-
-    .ai-desc {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    /* TAB PANELS */
-    .tab-panel {
-      display: none;
-      animation: fadeIn 0.12s ease-out;
-    }
-
-    .tab-panel.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(3px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* BOTTOM TAB BAR ESTILO iOS */
-    .tab-bar {
-      height: 54px;
-      border-top: 1px solid rgba(148, 163, 184, 0.25);
-      background: rgba(248, 250, 252, 0.96);
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      padding: 4px 12px;
-      backdrop-filter: blur(14px);
-    }
-
-    .tab-btn {
-      flex: 1;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      font-size: 10px;
-      color: #9ca3af;
-      padding: 4px 0;
-    }
-
-    .tab-btn span.icon {
-      font-size: 17px;
-    }
-
-    .tab-btn-active {
-      color: #1d4ed8;
-    }
-
-    .tab-btn-active .tab-pill {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
-    .tab-pill {
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: transparent;
-    }
-
-    /* SCROLL SOLO EN CONTENIDO */
-    .app-content::-webkit-scrollbar {
-      width: 4px;
-    }
-    .app-content::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .app-content::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.6);
-      border-radius: 999px;
-    }
-
-    /* RESPONSIVE */
-    @media (min-width: 768px) {
-      .app-shell {
-        max-width: 480px;
-        margin: 0 auto;
-        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
-      }
-    }
-
-    @media (max-width: 400px) {
-      .summary-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 330px) {
-      .summary-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
 
-<div class="app-shell">
+<div class="app-root">
+
   <!-- HEADER -->
   <header class="app-header">
-    <div class="app-header-left">
+    <div>
       <div class="app-title">Fugas de Agua</div>
       <div class="app-subtitle" id="headerDate">Hoy</div>
     </div>
+
     <div class="status-pill">
       <span class="status-dot"></span>
-      Sistema activo
+      Activo
     </div>
   </header>
 
-  <!-- CONTENIDO -->
+  <!-- CONTENT -->
   <main class="app-content">
 
-    <!-- TAB: INICIO -->
+    <!-- HOME -->
     <section id="tab-home" class="tab-panel active">
+
       <h3 class="section-title">Resumen general</h3>
 
       <div class="summary-grid">
+
         <div class="summary-card">
           <div class="summary-label">Consumo hoy</div>
           <div class="summary-value" id="consumoHoy">–</div>
-          <div class="summary-chip">Dentro de lo normal</div>
+          <div class="summary-chip">Normal</div>
         </div>
 
         <div class="summary-card">
           <div class="summary-label">Consumo mensual</div>
           <div class="summary-value" id="consumoMes">–</div>
-          <div class="summary-chip">Vs. mes anterior</div>
+          <div class="summary-chip">Comparativa</div>
         </div>
 
         <div class="summary-card">
           <div class="summary-label">Sensores activos</div>
           <div class="summary-value" id="summarySensors">–</div>
-          <div class="summary-chip">Red principal</div>
+          <div class="summary-chip">Online</div>
         </div>
 
         <div class="summary-card">
           <div class="summary-label">Fugas activas</div>
           <div class="summary-value" id="summaryLeaks">–</div>
-          <div class="summary-chip summary-chip-red">Revisión inmediata</div>
+          <div class="summary-chip-red">Revisión</div>
         </div>
+
       </div>
 
+      <!-- GRAFICA -->
       <div class="chart-card">
         <div class="chart-title">Consumo últimos 7 días</div>
-        <div class="chart-subtitle">Monitoreo continuo del flujo total de agua.</div>
-        <div class="chart-container">
-          <canvas id="consumoChart"></canvas>
-        </div>
+        <div class="chart-subtitle">Flujo monitoreado en tuberías principales</div>
+        <div class="chart-container"><canvas id="consumoChart"></canvas></div>
       </div>
+
     </section>
 
-    <!-- TAB: SENSORES -->
+    <!-- SENSORES -->
     <section id="tab-sensors" class="tab-panel">
       <h3 class="section-title">Sensores y tuberías</h3>
 
       <div class="list-card">
-        <div class="section-title" style="margin-bottom:4px;">Presión por sensor</div>
-        <div class="list" id="listaSensores">
-          <!-- Llenado por JS -->
-        </div>
+        <div class="section-title">Presión por sensor</div>
+        <div class="list" id="listaSensores"></div>
       </div>
 
       <div class="list-card">
-        <div class="section-title" style="margin-bottom:4px;">Registros de errores</div>
-        <div class="list" id="listaErrores">
-          <!-- Llenado por JS -->
-        </div>
+        <div class="section-title">Errores recientes</div>
+        <div class="list" id="listaErrores"></div>
       </div>
     </section>
 
-    <!-- TAB: ALERTAS -->
+    <!-- ALERTAS -->
     <section id="tab-alerts" class="tab-panel">
       <h3 class="section-title">Alertas y fugas</h3>
 
       <div class="list-card">
-        <div class="section-title" style="margin-bottom:4px;">Alertas generadas hoy</div>
-        <div class="list" id="listaAlertas">
-          <!-- Llenado por JS -->
-        </div>
+        <div class="section-title">Alertas de hoy</div>
+        <div class="list" id="listaAlertas"></div>
       </div>
 
       <div class="list-card">
-        <div class="section-title" style="margin-bottom:4px;">Historial de fugas</div>
-        <div class="list" id="listaFugas">
-          <!-- Llenado por JS -->
-        </div>
+        <div class="section-title">Historial de fugas</div>
+        <div class="list" id="listaFugas"></div>
       </div>
     </section>
 
-    <!-- TAB: IA -->
+    <!-- IA -->
     <section id="tab-ai" class="tab-panel">
-      <h3 class="section-title">IA – Predicción de fugas</h3>
+      <h3 class="section-title">Predicciones IA</h3>
 
       <div class="list-card">
-        <div class="section-title" style="margin-bottom:4px;">Resumen IA</div>
         <p class="ai-desc">
-          La IA analiza presión, consumo, ubicación de sensores, historial de fugas y errores de sistema
-          para estimar la probabilidad de que ocurra una nueva fuga.
-        </p>
-        <p class="ai-pill">
-          🔍 Datos usados: presión, historial de fugas, consumo diario/mensual, errores y tiempo de uso.
+          La IA analiza presión, consumo, historial de fugas y errores para estimar probabilidades de fuga.
         </p>
       </div>
 
       <div class="list-card">
-        <div class="section-title" style="margin-bottom:4px;">Predicciones actuales</div>
-        <div class="list" id="listaPredicciones">
-          <!-- Llenado por JS -->
-        </div>
+        <div class="section-title">Predicciones actuales</div>
+        <div class="list" id="listaPredicciones"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- NAV BOTTOM -->
+  <!-- TABS IOS -->
   <nav class="tab-bar">
     <button class="tab-btn tab-btn-active" data-tab="home">
-      <span class="icon">🏠</span>
-      <span class="tab-pill">Inicio</span>
+      <span class="icon">🏠</span> Inicio
     </button>
     <button class="tab-btn" data-tab="sensors">
-      <span class="icon">🧊</span>
-      <span class="tab-pill">Sensores</span>
+      <span class="icon">🧊</span> Sensores
     </button>
     <button class="tab-btn" data-tab="alerts">
-      <span class="icon">🚨</span>
-      <span class="tab-pill">Alertas</span>
+      <span class="icon">🚨</span> Alertas
     </button>
     <button class="tab-btn" data-tab="ai">
-      <span class="icon">🤖</span>
-      <span class="tab-pill">IA</span>
+      <span class="icon">🤖</span> IA
     </button>
   </nav>
+
 </div>
 
 <script>
-  // ------------------------ DATOS SIMULADOS ------------------------
-  const sensores = [
-    { id: "S-001", ubicacion: "Edificio A – Tubería principal", presion: 74, estado: "OK" },
-    { id: "S-002", ubicacion: "Edificio A – Piso 2", presion: 69, estado: "OK" },
-    { id: "S-003", ubicacion: "Edificio B – Subsuelo", presion: 48, estado: "WARN" },
-    { id: "S-004", ubicacion: "Estacionamiento – Línea secundaria", presion: 31, estado: "CRIT" },
-    { id: "S-005", ubicacion: "Edificio C – Azotea", presion: 79, estado: "OK" }
-  ];
+/* DATOS SIMULADOS */
+const sensores = [
+  { id: "S-001", ubicacion: "Edificio A – Principal", presion: 74, estado: "OK" },
+  { id: "S-002", ubicacion: "Edificio A – Piso 2", presion: 69, estado: "OK" },
+  { id: "S-003", ubicacion: "Edificio B – Subsuelo", presion: 48, estado: "WARN" },
+  { id: "S-004", ubicacion: "Estacionamiento", presion: 31, estado: "CRIT" },
+];
 
-  const errores = [
-    { fecha: "28/11/25 10:14", sensor: "S-004", tipo: "Timeout de lectura" },
-    { fecha: "28/11/25 09:51", sensor: "S-003", tipo: "Valores fuera de rango" },
-    { fecha: "27/11/25 22:08", sensor: "S-002", tipo: "Pérdida de paquete" },
-  ];
+const errores = [
+  { fecha: "28/11/25 10:14", sensor: "S-004", tipo: "Timeout" },
+  { fecha: "28/11/25 09:51", sensor: "S-003", tipo: "Rango fuera" },
+];
 
-  const alertas = [
-    {
-      hora: "18:42",
-      titulo: "Caída de presión anómala",
-      detalle: "Sensor S-004 detectó caída del 20% en 5 min.",
-      nivel: "Crítica"
-    },
-    {
-      hora: "03:15",
-      titulo: "Consumo elevado nocturno",
-      detalle: "Consumo 35% mayor al esperado.",
-      nivel: "Media"
-    },
-    {
-      hora: "01:27",
-      titulo: "Variación de presión",
-      detalle: "Sensores S-002 y S-003 con cambios intermitentes.",
-      nivel: "Baja"
+const alertas = [
+  { hora: "18:42", titulo: "Caída de presión", detalle: "20% en 5 min — S-004", nivel: "Crítica" },
+  { hora: "03:15", titulo: "Consumo nocturno", detalle: "35% mayor — Zona A", nivel: "Media" },
+];
+
+const fugas = [
+  { fecha: "28/11/25", sensor: "S-004", nivel: "Alta", estado: "En reparación" },
+  { fecha: "26/11/25", sensor: "S-003", nivel: "Media", estado: "Resuelta" },
+];
+
+const predicciones = [
+  { sensor: "S-004 – Estacionamiento", prob: 0.82, plazo: "24 h", motivo: "Historial + presión" },
+  { sensor: "S-003 – Subsuelo", prob: 0.64, plazo: "3 días", motivo: "Variaciones de presión" },
+];
+
+const consumoSemanal = { dias: ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"], valores: [13.2,12.7,14.1,13.8,15.5,11.9,10.8] };
+
+document.getElementById("consumoHoy").textContent = "10.8 m³";
+document.getElementById("consumoMes").textContent = "320.4 m³";
+document.getElementById("summarySensors").textContent = sensores.length;
+document.getElementById("summaryLeaks").textContent = fugas.filter(f=>f.estado!=="Resuelta").length;
+
+/* FUNCIONES DE PINTADO */
+function addItem(parent, title, meta, badge, badgeClass) {
+  const div = document.createElement("div");
+  div.className = "list-item";
+  div.innerHTML = `
+    <div>
+      <div class="list-title">${title}</div>
+      <div class="list-meta">${meta}</div>
+    </div>
+    <span class="badge ${badgeClass}">${badge}</span>
+  `;
+  parent.appendChild(div);
+}
+
+/* SENSORES */
+sensores.forEach(s => {
+  let badge="Normal", bc="badge-green";
+  if(s.estado==="WARN") { badge="Atención"; bc="badge-yellow"; }
+  if(s.estado==="CRIT") { badge="Crítico"; bc="badge-red"; }
+  addItem(listaSensores, `${s.id} · ${s.presion} psi`, s.ubicacion, badge, bc);
+});
+
+/* ERRORES */
+errores.forEach(e => addItem(listaErrores, e.tipo, `${e.fecha} · ${e.sensor}`, "Error", "badge-red"));
+
+/* ALERTAS */
+alertas.forEach(a => {
+  let c = a.nivel==="Crítica"?"badge-red":a.nivel==="Media"?"badge-yellow":"badge-green";
+  addItem(listaAlertas, a.titulo, `${a.hora} h · ${a.detalle}`, a.nivel, c);
+});
+
+/* FUGAS */
+fugas.forEach(f => {
+  let c=f.nivel==="Alta"?"badge-red":f.nivel==="Media"?"badge-yellow":"badge-green";
+  addItem(listaFugas, f.sensor, `${f.fecha} · Nivel ${f.nivel}`, f.estado, c);
+});
+
+/* IA */
+predicciones.forEach(p => {
+  const div=document.createElement("div");
+  div.className="list-item";
+  const score=Math.round(p.prob*100);
+  div.innerHTML=`
+    <div>
+      <div class="list-title">${p.sensor}</div>
+      <div class="ai-desc">Fuga posible en ${p.plazo}</div>
+      <div class="ai-desc">${p.motivo}</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="ai-risk ${score>=80?"ai-risk-high":"ai-risk-mid"}">${score}%</div>
+      <span class="badge">Riesgo</span>
+    </div>`;
+  listaPredicciones.appendChild(div);
+});
+
+/* GRAFICA */
+new Chart(document.getElementById("consumoChart"), {
+  type:"line",
+  data:{ labels:consumoSemanal.dias, datasets:[{
+    data:consumoSemanal.valores,
+    borderColor:"#2563eb",
+    backgroundColor:"rgba(37,99,235,0.16)",
+    tension:0.35,
+    fill:true,
+    pointRadius:3
+  }]},
+  options:{ plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:"#6b7280"}, grid:{color:"rgba(0,0,0,0.05)"}},
+      y:{ticks:{color:"#6b7280"}, grid:{color:"rgba(0,0,0,0.05)"}}
     }
-  ];
+  }
+});
 
-  const fugas = [
-    { fecha: "28/11/25", sensor: "S-004", nivel: "Alta", estado: "En reparación" },
-    { fecha: "26/11/25", sensor: "S-003", nivel: "Media", estado: "Resuelta" },
-    { fecha: "21/11/25", sensor: "S-001", nivel: "Baja", estado: "Resuelta" }
-  ];
+/* TABS */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("tab-btn-active"));
+    btn.classList.add("tab-btn-active");
 
-  const predicciones = [
-    {
-      sensor: "S-004 · Estacionamiento",
-      prob: 0.82,
-      plazo: "Próximas 24 h",
-      motivo: "Presión inestable + fuga reciente"
-    },
-    {
-      sensor: "S-003 · Subsuelo Edificio B",
-      prob: 0.64,
-      plazo: "Próximos 3 días",
-      motivo: "Errores frecuentes + variaciones de presión"
-    },
-    {
-      sensor: "Zona S-001 + S-002",
-      prob: 0.41,
-      plazo: "Próximos 7 días",
-      motivo: "Aumento leve de consumo nocturno"
-    }
-  ];
-
-  const consumoSemanal = {
-    dias: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
-    valores: [13.2, 12.7, 14.1, 13.8, 15.5, 11.9, 10.8]
+    const tab=btn.getAttribute("data-tab");
+    document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById("tab-"+tab).classList.add("active");
   };
-
-  const consumoHoy = 10.8;
-  const consumoMes = 320.4;
-
-  // ------------------------ HEADER FECHA ------------------------
-  (function setDate() {
-    const date = new Date();
-    const op = { day: "numeric", month: "short" };
-    const hoy = date.toLocaleDateString("es-MX", op);
-    document.getElementById("headerDate").textContent = "Hoy • " + hoy;
-  })();
-
-  // ------------------------ RESUMEN ------------------------
-  document.getElementById("summarySensors").textContent = sensores.length;
-  document.getElementById("summaryLeaks").textContent = fugas.filter(f => f.estado !== "Resuelta").length;
-  document.getElementById("consumoHoy").textContent = consumoHoy.toFixed(1) + " m³";
-  document.getElementById("consumoMes").textContent = consumoMes.toFixed(1) + " m³";
-
-  // ------------------------ LISTA SENSORES ------------------------
-  const listaSensores = document.getElementById("listaSensores");
-  sensores.forEach(s => {
-    let badgeClass = "badge-green";
-    let estadoText = "Normal";
-    if (s.estado === "WARN") {
-      badgeClass = "badge-yellow";
-      estadoText = "Atención";
-    } else if (s.estado === "CRIT") {
-      badgeClass = "badge-red";
-      estadoText = "Crítico";
-    }
-
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
-      <div class="list-main">
-        <div class="list-title">${s.id} · ${s.presion} psi</div>
-        <div class="list-meta">${s.ubicacion}</div>
-      </div>
-      <span class="badge ${badgeClass}">${estadoText}</span>
-    `;
-    listaSensores.appendChild(item);
-  });
-
-  // ------------------------ LISTA ERRORES ------------------------
-  const listaErrores = document.getElementById("listaErrores");
-  errores.forEach(e => {
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
-      <div class="list-main">
-        <div class="list-title">${e.tipo}</div>
-        <div class="list-meta">${e.fecha} · ${e.sensor}</div>
-      </div>
-      <span class="badge">Error</span>
-    `;
-    listaErrores.appendChild(item);
-  });
-
-  // ------------------------ ALERTAS ------------------------
-  const listaAlertas = document.getElementById("listaAlertas");
-  alertas.forEach(a => {
-    let badgeClass = "badge";
-    if (a.nivel === "Crítica") badgeClass = "badge-red";
-    else if (a.nivel === "Media") badgeClass = "badge-yellow";
-
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
-      <div class="list-main">
-        <div class="list-title">${a.titulo}</div>
-        <div class="list-meta">${a.detalle}</div>
-        <div class="list-meta">Hora: ${a.hora} h</div>
-      </div>
-      <span class="badge ${badgeClass}">${a.nivel}</span>
-    `;
-    listaAlertas.appendChild(item);
-  });
-
-  // ------------------------ FUGAS ------------------------
-  const listaFugas = document.getElementById("listaFugas");
-  fugas.forEach(f => {
-    let badgeClass = "badge";
-    if (f.nivel === "Alta") badgeClass = "badge-red";
-    else if (f.nivel === "Media") badgeClass = "badge-yellow";
-    else badgeClass = "badge-green";
-
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
-      <div class="list-main">
-        <div class="list-title">${f.sensor}</div>
-        <div class="list-meta">${f.fecha} · Nivel: ${f.nivel}</div>
-        <div class="list-meta">Estado: ${f.estado}</div>
-      </div>
-      <span class="badge ${badgeClass}">${f.nivel}</span>
-    `;
-    listaFugas.appendChild(item);
-  });
-
-  // ------------------------ PREDICCIONES IA ------------------------
-  const listaPredicciones = document.getElementById("listaPredicciones");
-  predicciones.forEach(p => {
-    const score = Math.round(p.prob * 100);
-    const riskClass = score >= 80 ? "ai-risk ai-risk-high" : "ai-risk ai-risk-mid";
-
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
-      <div class="list-main">
-        <div class="list-title">${p.sensor}</div>
-        <div class="ai-desc">Posible fuga en ${p.plazo}</div>
-        <div class="ai-desc">Motivo: ${p.motivo}</div>
-      </div>
-      <div style="text-align:right;">
-        <div class="${riskClass}">${score}%</div>
-        <div class="badge">Riesgo estimado</div>
-      </div>
-    `;
-    listaPredicciones.appendChild(item);
-  });
-
-  // ------------------------ CHART ------------------------
-  const ctx = document.getElementById("consumoChart").getContext("2d");
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: consumoSemanal.dias,
-      datasets: [{
-        label: "Consumo (m³)",
-        data: consumoSemanal.valores,
-        borderColor: "#2563eb",
-        backgroundColor: "rgba(37, 99, 235, 0.15)",
-        tension: 0.35,
-        fill: true,
-        pointRadius: 3,
-        pointHoverRadius: 4
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "#0f172a",
-          borderColor: "#2563eb",
-          borderWidth: 1,
-          titleColor: "#e5e7eb",
-          bodyColor: "#d1d5db",
-          padding: 8
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: "#9ca3af", font: { size: 10 } },
-          grid: { color: "rgba(209, 213, 219, 0.4)" }
-        },
-        y: {
-          ticks: { color: "#9ca3af", font: { size: 10 } },
-          grid: { color: "rgba(209, 213, 219, 0.4)" }
-        }
-      }
-    }
-  });
-
-  // ------------------------ TABS ------------------------
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  const panels = {
-    home: document.getElementById("tab-home"),
-    sensors: document.getElementById("tab-sensors"),
-    alerts: document.getElementById("tab-alerts"),
-    ai: document.getElementById("tab-ai"),
-  };
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const tab = btn.getAttribute("data-tab");
-
-      Object.values(panels).forEach(p => p.classList.remove("active"));
-      panels[tab].classList.add("active");
-
-      tabButtons.forEach(b => b.classList.remove("tab-btn-active"));
-      btn.classList.add("tab-btn-active");
-    });
-  });
+});
 </script>
 
 </body>
